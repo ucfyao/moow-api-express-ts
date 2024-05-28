@@ -2,7 +2,7 @@ import { ValidationChain, body, header } from "express-validator";
 
 const createValidator: ValidationChain[] = [
   body("email").trim().isString().notEmpty(),
-  body("password").trim().isString().notEmpty(),
+  body("password").trim().isString().isLength({ min: 6 }).notEmpty(),
 ];
 
 const updateValidator: ValidationChain[] = [

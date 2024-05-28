@@ -10,6 +10,7 @@ export class UserController extends BaseController {
     super(req, res);
   }
 
+  // TODO: refactor this class
   public async create() {
     // check params
     if (!this.validate()) {

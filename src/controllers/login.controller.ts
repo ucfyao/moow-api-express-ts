@@ -11,6 +11,7 @@ export class LoginController extends BaseController {
     super(req, res);
   }
 
+  // TODO: refactor this class
   public async create() {
     // check params
     if (!this.validate()) {
@@ -21,12 +22,15 @@ export class LoginController extends BaseController {
     let users = new UserService();
     const user = await users.getByEmail(this.req.body.email);
     if (!user) {
-      logger.error(`user not found: ${this.req.body.email}`);
+      logger.warn(`user not found: ${this.req.body.email}`);
       return this.fail(StatusCodes.NOT_FOUND, ErrorCodes.NotFound.code);
     }
 
+    // TODO: password should be encrypted (md5/sha1(password + salt) or bcrypt)
+
     // verify password
     if (user.password !== this.req.body.password) {
+      logger.warn(`password not match: ${this.req.body.email}`);
       return this.fail(StatusCodes.UNAUTHORIZED, ErrorCodes.AuthFailed.code);
     }
 
