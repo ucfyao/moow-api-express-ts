@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { validationResult, ValidationChain } from "express-validator";
 import { StatusCodes, getReasonPhrase } from "http-status-codes";
 import { ErrorCodes, getErrorReason } from "../utils/errors/err.errors";
-import logger from "../utils/logger.utils";
+import logger from "../utils/loggerUtils";
 
 class BaseController {
   protected req: Request;

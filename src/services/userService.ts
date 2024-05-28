@@ -1,16 +1,17 @@
-import { User, IUser } from "../models/user.model";
+import { User, IUser } from "../models/userModel";
 import { nanoid } from "nanoid";
-import logger from "../utils/logger.utils";
+import logger from "../utils/loggerUtils";
 import { ErrorCodes } from "../utils/errors/err.errors";
+import * as crypto from 'crypto';
 
 export class UserService {
   constructor() {}
 
-  public async create(profile: IUser): Promise<IUser | null> {
+  public async createUser(profile: IUser): Promise<IUser | null> {
     // check if the user already exists
     let user = await User.findOne({ email: profile.email });
     if (user) {
-      throw new Error("User already exists");
+      throw new Error("User already exists"); //这里丢出的error会放到哪里处理
     }
 
     // if not, create a new user
@@ -19,6 +20,11 @@ export class UserService {
     profile.verificationCode = nanoid();
     profile.createdAt = new Date();
     profile.updatedAt = new Date();
+
+    const pwdObj = await this._generatePassword(profile.password);
+    profile.salt = pwdObj.salt;
+    profile.password = pwdObj.password;
+    // todo: add reference
     user = new User(profile);
 
     // save the user to the database
@@ -39,8 +45,8 @@ export class UserService {
     return user;
   }
 
-  public async send(email: string, password: string): Promise<void> {
-    // get user by email
+  public async sendEmail(email: string, password: string): Promise<void> {
+    // get user by email？？ it should be sending user a verification code
     let user = await User.findOne({ email: email });
     if (!user) {
       throw new Error("User not found");
@@ -59,7 +65,7 @@ export class UserService {
     // TODO: send verification email
   }
 
-  public async verify(code: string): Promise<void> {
+  public async verifyUser(code: string): Promise<void> {
     // get user by verification code
     let user = await User.findOne({ verificationCode: code });
     if (!user) {
@@ -76,7 +82,7 @@ export class UserService {
     await user.save();
   }
 
-  public async get(id: string, guest: boolean = false): Promise<IUser | null> {
+  public async getUserById(id: string, guest: boolean = false): Promise<IUser | null> {
     // get user by id
     logger.info(`guest: ${guest}`);
     let user = await User.findOne(
@@ -101,8 +107,33 @@ export class UserService {
     return user;
   }
 
-  public async getByEmail(
-    email: string,
+  public async getAllUsers(guest: boolean = false): Promise<IUser[]> {
+    // get all users
+    logger.info(`guest: ${guest}`);
+    let users = await User.find(
+      {},
+      guest
+        ? {
+            _id: 0,
+            __v: 0,
+            password: 0,
+            verificationCode: 0,
+            createdAt: 0,
+            updatedAt: 0,
+          }
+        : {
+            _id: 0,
+            __v: 0,
+            verificationCode: 0,
+            createdAt: 0,
+            updatedAt: 0,
+          }
+    );
+    return users;
+  }
+
+  public async getByEmail( //这是用于登录的
+    email: string, 
     guest: boolean = false
   ): Promise<IUser | null> {
     // get user by email
@@ -128,7 +159,7 @@ export class UserService {
     return user;
   }
 
-  public async update(id: string, profile: IUser): Promise<IUser | null> {
+  public async updateUser(id: string, profile: IUser): Promise<IUser | null> {
     // get user by id
     let user = await User.findOne({ id: id });
     if (!user) {
@@ -157,4 +188,59 @@ export class UserService {
     );
     return user;
   }
+
+  public async updatePassword(id: string, OriginalPassword: string, NewPassword: string): Promise<IUser | null> {
+    // get user by id
+    let user = await User.findOne({ id: id });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // check whether old password matches
+    const pwdObj = await this._comparePassword(user.salt, OriginalPassword);
+    if (pwdObj.password !== user.password) {
+      throw new Error ('Original password is not correct');
+    }
+
+    const newPwdObj = await this._generatePassword(NewPassword);
+    user.salt = newPwdObj.salt;
+    user.password = newPwdObj.password;
+
+    // save the user to the database
+    await user.save();
+
+    // get the user from the database
+    user = await User.findOne(
+      { id: id },
+      {
+        _id: 0,
+        __v: 0,
+        password: 0,
+        verificationCode: 0,
+        createdAt: 0,
+        updatedAt: 0,
+      }
+    );
+    return user;
+  }
+
+  async _generatePassword(password: string): Promise<{ salt: string; password: string }> {
+    const salt = crypto.randomBytes(32).toString('base64');
+    const cryptoPassword = crypto.pbkdf2Sync(password, salt, 1000, 32, 'sha512');
+
+    return {
+      salt: salt,
+      password: cryptoPassword.toString('base64')
+    };
+  }
+
+  async _comparePassword(salt: string, password: string): Promise<{ password: string; salt: string }> {
+    const cryptoPassword = crypto.pbkdf2Sync(password, salt, 1000, 32, 'sha512');
+  
+    return {
+      password: cryptoPassword.toString('base64'),
+      salt,
+    };
+  }
+
 }

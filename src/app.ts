@@ -2,15 +2,16 @@ import dotenv from "dotenv";
 import express, { Express } from "express";
 import morgan from "morgan";
 import morganBody from "morgan-body";
-import logger from "./utils/logger.utils";
+import logger from "./utils/loggerUtils";
 import routes from "./routes";
 import connectToDB from "./configs/db";
-import errorMiddleware from "./middlewares/error.middleware";
-import contextMiddleware from "./middlewares/context.middleware";
-import accessMiddleware from "./middlewares/access.middleware";
+import errorMiddleware from "./middlewares/errorMiddleware";
+import contextMiddleware from "./middlewares/contextMiddleware";
+import accessMiddleware from "./middlewares/accessMiddleware";
 
 // load configurations
 dotenv.config();
+console.log('MONGO_URI:', process.env.MONGO_URI);
 
 // init service
 const app: Express = express();

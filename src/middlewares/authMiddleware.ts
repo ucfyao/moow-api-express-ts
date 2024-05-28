@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import constants from "../constants";
-import logger from "../utils/logger.utils";
-import { LoginService } from "../services/login.service";
+import logger from "../utils/loggerUtils";
+import { LoginService } from "../services/loginService";
 import { StatusCodes, ReasonPhrases } from "http-status-codes";
 import { ErrorCodes } from "../utils/errors/err.errors";
 
@@ -18,7 +18,7 @@ const authenticateJWT = async (
 
   // verify JWT
   try {
-    let jwt = req.headers.authorization || "";
+    let jwt = req.headers.authorization || ""; //登录后才有jwt？ 理解http协议
     if (jwt === "") {
       return res
         .status(StatusCodes.UNAUTHORIZED)
@@ -30,7 +30,7 @@ const authenticateJWT = async (
     logger.warn(
       `rid: ${req.ctx.reqId}, userId: ${req.ctx.userId}, verify JWT failed - Unauthorized`
     );
-    next(error);
+    next(error); //这个error传哪， errormiddleware
   }
 };
 

@@ -1,7 +1,7 @@
 import { createSecretKey } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import * as jose from "jose";
-import logger from "../utils/logger.utils";
+import logger from "../utils/loggerUtils";
 
 const secretKey = createSecretKey(process.env.JWT_SECRET ?? "", "utf-8");
 
@@ -76,7 +76,7 @@ export class LoginService {
       // jwt verification failed
       logger.warn(`JWT is invalid, error: ${error}`);
       if (error instanceof jose.errors.JWTExpired) {
-        throw new Error("Token expired");
+        throw new Error("Token expired"); //
       }
       throw new Error("Unauthorized");
     }

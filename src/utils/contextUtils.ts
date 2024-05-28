@@ -3,10 +3,12 @@ type ContextOptions = (u: Context) => void;
 class Context {
   reqId: string;
   userId: string;
+  session: string;
 
   constructor(...options: ContextOptions[]) {
     this.reqId = "";
     this.userId = "";
+    this.session = "";
 
     for (const option of options) {
       option(this);

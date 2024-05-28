@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import logger from "../utils/logger.utils";
+import logger from "../utils/loggerUtils";
 
 const accessMiddleware = async (
   req: Request,

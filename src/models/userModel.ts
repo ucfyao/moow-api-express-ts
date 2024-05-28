@@ -11,6 +11,8 @@ interface IUser {
   verificationCode: string;
   createdAt: Date;
   updatedAt: Date;
+  salt: string;
+  // ref?: string;这个推荐人功能先不实现
 }
 
 // JSON demo for IUser
@@ -36,6 +38,7 @@ const userSchema = new Schema<IUser>({
   verificationCode: { type: String, required: true },
   createdAt: { type: Date, required: true },
   updatedAt: { type: Date, required: true },
+  salt: {type: String, required: true},
 })
 
 const User = model<IUser>("User", userSchema);
